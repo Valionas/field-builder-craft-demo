@@ -87,6 +87,30 @@
         "Australia"
       ],
       "order": "alphabetical"
+    },
+    {
+      "id": "2df7",
+      "label": "Test",
+      "isMultiSelect": true,
+      "defaultValue": "",
+      "choices": [],
+      "order": "alphabetical"
+    },
+    {
+      "id": "c813",
+      "label": "Test",
+      "isMultiSelect": true,
+      "defaultValue": "",
+      "choices": [],
+      "order": "alphabetical"
+    },
+    {
+      "id": "0086",
+      "label": "Test",
+      "isMultiSelect": true,
+      "defaultValue": "",
+      "choices": [],
+      "order": "alphabetical"
     }
   ]
 }

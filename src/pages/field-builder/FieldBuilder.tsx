@@ -20,6 +20,7 @@ import {
   ListItemText,
   Typography,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -40,6 +41,7 @@ const FieldBuilder: React.FC = () => {
   const [choiceOptions, setChoiceOptions] = useState<string[]>(continents);
   const [order, setOrder] = useState<string>("alphabetical");
   const [errors, setErrors] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState<boolean>(false); // New state for loading
 
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -108,6 +110,8 @@ const FieldBuilder: React.FC = () => {
       return;
     }
 
+    setIsSaving(true); // Start loading
+
     const formData: FieldData = {
       label,
       isMultiSelect,
@@ -128,6 +132,8 @@ const FieldBuilder: React.FC = () => {
     } catch (error) {
       console.error("Failed to post form data:", error);
       toast.error("Failed to save form data.");
+    } finally {
+      setIsSaving(false); // End loading
     }
 
     console.log("Form data saved:", formData);
@@ -374,7 +380,17 @@ const FieldBuilder: React.FC = () => {
           </Box>
         </CardContent>
         <CardActions sx={{ justifyContent: "space-between", paddingX: 2 }}>
-          <Button variant="contained" color="success" onClick={handleSave}>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleSave}
+            disabled={isSaving} // Disable button while saving
+            startIcon={
+              isSaving ? (
+                <CircularProgress size={20} sx={{ color: "white" }} />
+              ) : null
+            }
+          >
             Save changes
           </Button>
           <Button variant="contained" color="error" onClick={handleClear}>
