@@ -14,7 +14,6 @@ import {
   CardContent,
   CardActions,
   CardHeader,
-  Box,
   Grid,
   InputLabel,
   ListItemText,
@@ -41,7 +40,7 @@ const FieldBuilder: React.FC = () => {
   const [choiceOptions, setChoiceOptions] = useState<string[]>(continents);
   const [order, setOrder] = useState<string>("alphabetical");
   const [errors, setErrors] = useState<string[]>([]);
-  const [isSaving, setIsSaving] = useState<boolean>(false); // New state for loading
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -188,76 +187,79 @@ const FieldBuilder: React.FC = () => {
   };
 
   const renderChoice = (choice: string) => (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <span>
-        {choice.length > 40 ? (
-          <>
-            {choice.slice(0, 40)}
-            <span style={{ color: "red" }}>{choice.slice(40)}</span>
-          </>
-        ) : (
-          choice
-        )}
-      </span>
-      <IconButton
-        size="small"
-        onClick={(event) => removeChoice(choice, event)}
-        sx={{ marginLeft: 1 }}
-      >
-        <FaTimes fontSize="small" />
-      </IconButton>
-    </Box>
+    <Grid container justifyContent="space-between" alignItems="center">
+      <Grid item xs>
+        <Typography noWrap>
+          {choice.length > 40 ? (
+            <>
+              {choice.slice(0, 40)}
+              <span style={{ color: "red" }}>{choice.slice(40)}</span>
+            </>
+          ) : (
+            choice
+          )}
+        </Typography>
+      </Grid>
+      <Grid item>
+        <IconButton
+          size="small"
+          onClick={(event) => removeChoice(choice, event)}
+          sx={{ marginLeft: 1 }}
+        >
+          <FaTimes fontSize="small" />
+        </IconButton>
+      </Grid>
+    </Grid>
   );
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      style={{ height: "100vh" }}
     >
-      <Card
-        variant="outlined"
-        sx={{
-          width: "60%",
-          borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-        }}
-      >
-        <CardHeader
-          title={<span style={{ fontWeight: "bold" }}>Field Builder</span>}
+      <Grid item xs={12} sm={8} md={6}>
+        <Card
+          variant="outlined"
           sx={{
-            textAlign: "left",
-            backgroundColor: "#f5f5f5",
-            borderBottom: "1px solid #ddd",
-            padding: "16px",
-            color: "black",
+            borderRadius: "16px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
           }}
-        />
-        <CardContent>
-          {errors.length > 0 && (
-            <Box sx={{ marginBottom: 2 }}>
-              {errors.map((error, index) => (
-                <Typography key={index} color="error">
-                  {error}
-                </Typography>
-              ))}
-            </Box>
-          )}
-          <Box component="form" noValidate autoComplete="off">
-            <Grid container alignItems="center" spacing={2} marginBottom={2}>
-              <Grid item xs={4}>
-                <Typography variant="body1">Label</Typography>
+        >
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight="bold">
+                Field Builder
+              </Typography>
+            }
+            sx={{
+              backgroundColor: "#f5f5f5",
+              borderBottom: "1px solid #ddd",
+              padding: "16px",
+              color: "black",
+            }}
+          />
+          <CardContent>
+            {errors.length > 0 && (
+              <Grid container justifyContent="center" marginBottom={2}>
+                {errors.map((error, index) => (
+                  <Typography key={index} color="error">
+                    {error}
+                  </Typography>
+                ))}
               </Grid>
-              <Grid item xs={8}>
+            )}
+            <Grid container spacing={2} marginBottom={2}>
+              <Grid item xs={12} sm={4}>
+                <Typography
+                  variant="body1"
+                  textAlign={{ xs: "center", sm: "left" }}
+                >
+                  Label
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={8}>
                 <TextField
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
@@ -267,11 +269,16 @@ const FieldBuilder: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Grid container alignItems="center" spacing={2} marginBottom={2}>
-              <Grid item xs={4}>
-                <Typography variant="body1">Type</Typography>
+            <Grid container spacing={2} marginBottom={2}>
+              <Grid item xs={12} sm={4}>
+                <Typography
+                  variant="body1"
+                  textAlign={{ xs: "center", sm: "left" }}
+                >
+                  Type
+                </Typography>
               </Grid>
-              <Grid item xs={8} display="flex" alignItems="center">
+              <Grid item xs={12} sm={8}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -280,15 +287,21 @@ const FieldBuilder: React.FC = () => {
                     />
                   }
                   label="Multi-select"
+                  sx={{ textAlign: { xs: "center", sm: "left" } }}
                 />
               </Grid>
             </Grid>
 
-            <Grid container alignItems="center" spacing={2} marginBottom={2}>
-              <Grid item xs={4}>
-                <Typography variant="body1">Default Value</Typography>
+            <Grid container spacing={2} marginBottom={2}>
+              <Grid item xs={12} sm={4}>
+                <Typography
+                  variant="body1"
+                  textAlign={{ xs: "center", sm: "left" }}
+                >
+                  Default Value
+                </Typography>
               </Grid>
-              <Grid item xs={8}>
+              <Grid item xs={12} sm={8}>
                 <TextField
                   value={defaultValue}
                   onChange={(e) => setDefaultValue(e.target.value)}
@@ -302,11 +315,16 @@ const FieldBuilder: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Grid container alignItems="center" spacing={2} marginBottom={2}>
-              <Grid item xs={4}>
-                <Typography variant="body1">Choices</Typography>
+            <Grid container spacing={2} marginBottom={2}>
+              <Grid item xs={12} sm={4}>
+                <Typography
+                  variant="body1"
+                  textAlign={{ xs: "center", sm: "left" }}
+                >
+                  Choices
+                </Typography>
               </Grid>
-              <Grid item xs={8}>
+              <Grid item xs={12} sm={8}>
                 <FormControl fullWidth>
                   <InputLabel id="choices-label">Choices</InputLabel>
                   <Select
@@ -354,11 +372,16 @@ const FieldBuilder: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Grid container alignItems="center" spacing={2} marginBottom={2}>
-              <Grid item xs={4}>
-                <Typography variant="body1">Order</Typography>
+            <Grid container spacing={2} marginBottom={2}>
+              <Grid item xs={12} sm={4}>
+                <Typography
+                  variant="body1"
+                  textAlign={{ xs: "center", sm: "left" }}
+                >
+                  Order
+                </Typography>
               </Grid>
-              <Grid item xs={8}>
+              <Grid item xs={12} sm={8}>
                 <FormControl fullWidth>
                   <InputLabel id="order-label">Order</InputLabel>
                   <Select
@@ -377,29 +400,29 @@ const FieldBuilder: React.FC = () => {
                 </FormControl>
               </Grid>
             </Grid>
-          </Box>
-        </CardContent>
-        <CardActions sx={{ justifyContent: "space-between", paddingX: 2 }}>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleSave}
-            disabled={isSaving} // Disable button while saving
-            startIcon={
-              isSaving ? (
-                <CircularProgress size={20} sx={{ color: "white" }} />
-              ) : null
-            }
-          >
-            Save changes
-          </Button>
-          <Button variant="contained" color="error" onClick={handleClear}>
-            Cancel
-          </Button>
-        </CardActions>
-      </Card>
-      <ToastContainer />
-    </Box>
+          </CardContent>
+          <CardActions sx={{ justifyContent: "space-between", paddingX: 2 }}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleSave}
+              disabled={isSaving}
+              startIcon={
+                isSaving ? (
+                  <CircularProgress size={20} sx={{ color: "white" }} />
+                ) : null
+              }
+            >
+              Save changes
+            </Button>
+            <Button variant="contained" color="error" onClick={handleClear}>
+              Cancel
+            </Button>
+          </CardActions>
+        </Card>
+        <ToastContainer />
+      </Grid>
+    </Grid>
   );
 };
 

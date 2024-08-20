@@ -111,6 +111,16 @@
       "defaultValue": "",
       "choices": [],
       "order": "alphabetical"
+    },
+    {
+      "id": "b151",
+      "label": "Region",
+      "isMultiSelect": false,
+      "defaultValue": "Europe",
+      "choices": [
+        "Europe"
+      ],
+      "order": "alphabetical"
     }
   ]
 }
