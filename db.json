@@ -18,6 +18,24 @@
       "defaultValue": "Europe",
       "choices": "Europe",
       "order": "reverse-alphabetical"
+    },
+    {
+      "id": "2836",
+      "label": "Test",
+      "isMultiSelect": true,
+      "defaultValue": "Choice",
+      "choices": [],
+      "order": "alphabetical"
+    },
+    {
+      "id": "618d",
+      "label": "Testing Region",
+      "isMultiSelect": true,
+      "defaultValue": "Antartica",
+      "choices": [
+        "Antartica"
+      ],
+      "order": "reverse-alphabetical"
     }
   ]
 }

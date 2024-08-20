@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TextField,
   FormControlLabel,
@@ -24,6 +24,8 @@ import continents from "../../data/continents";
 import { saveFieldData } from "../../services/fieldService";
 import { FieldData } from "../../models/FieldData";
 
+const LOCAL_STORAGE_KEY = "fieldBuilderData";
+
 const FieldBuilder: React.FC = () => {
   const [label, setLabel] = useState<string>("");
   const [isMultiSelect, setIsMultiSelect] = useState<boolean>(true);
@@ -31,6 +33,29 @@ const FieldBuilder: React.FC = () => {
   const [choices, setChoices] = useState<string[]>([]);
   const [order, setOrder] = useState<string>("alphabetical");
   const [errors, setErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedData) {
+      const parsedData: FieldData = JSON.parse(savedData);
+      setLabel(parsedData.label);
+      setIsMultiSelect(parsedData.isMultiSelect);
+      setDefaultValue(parsedData.defaultValue);
+      setChoices(parsedData.choices);
+      setOrder(parsedData.order);
+    }
+  }, []);
+
+  useEffect(() => {
+    const formData: FieldData = {
+      label,
+      isMultiSelect,
+      defaultValue,
+      choices,
+      order,
+    };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+  }, [label, isMultiSelect, defaultValue, choices, order]);
 
   const validateForm = (): boolean => {
     const validationErrors: string[] = [];
@@ -62,11 +87,19 @@ const FieldBuilder: React.FC = () => {
       return;
     }
 
+    // Ensure the default value is included in the choices if not already present
+    if (defaultValue && !choices.includes(defaultValue)) {
+      setChoices([...choices, defaultValue]);
+    }
+
     const formData: FieldData = {
       label,
       isMultiSelect,
       defaultValue,
-      choices,
+      choices:
+        defaultValue && !choices.includes(defaultValue)
+          ? [...choices, defaultValue]
+          : choices,
       order,
     };
 
@@ -87,6 +120,7 @@ const FieldBuilder: React.FC = () => {
     setChoices([]);
     setOrder("alphabetical");
     setErrors([]);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
   const handleChoicesChange = (event: SelectChangeEvent<string[]>) => {
@@ -237,7 +271,7 @@ const FieldBuilder: React.FC = () => {
           <Button variant="contained" color="success" onClick={handleSave}>
             Save changes
           </Button>
-          <Button variant="text" color="error" onClick={handleClear}>
+          <Button variant="contained" color="error" onClick={handleClear}>
             Cancel
           </Button>
         </CardActions>
