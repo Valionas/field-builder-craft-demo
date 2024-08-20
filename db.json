@@ -1,0 +1,23 @@
+{
+  "fields": [
+    {
+      "id": "b838",
+      "label": "Sales",
+      "isMultiSelect": true,
+      "defaultValue": "Americas",
+      "choices": [
+        "Americas",
+        "Europe"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "6af4",
+      "label": "Sales-Region",
+      "isMultiSelect": false,
+      "defaultValue": "Europe",
+      "choices": "Europe",
+      "order": "reverse-alphabetical"
+    }
+  ]
+}

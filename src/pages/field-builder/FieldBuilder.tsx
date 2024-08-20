@@ -21,6 +21,8 @@ import {
   Typography,
 } from "@mui/material";
 import continents from "../../data/continents";
+import { saveFieldData } from "../../services/fieldService";
+import { FieldData } from "../../models/FieldData";
 
 const FieldBuilder: React.FC = () => {
   const [label, setLabel] = useState<string>("");
@@ -28,15 +30,54 @@ const FieldBuilder: React.FC = () => {
   const [defaultValue, setDefaultValue] = useState<string>("");
   const [choices, setChoices] = useState<string[]>([]);
   const [order, setOrder] = useState<string>("alphabetical");
+  const [errors, setErrors] = useState<string[]>([]);
 
-  const handleSave = () => {
-    console.log("Form data saved:", {
+  const validateForm = (): boolean => {
+    const validationErrors: string[] = [];
+
+    if (!label.trim()) {
+      validationErrors.push("Label is required.");
+    }
+
+    const uniqueChoices = new Set(choices);
+    if (uniqueChoices.size !== choices.length) {
+      validationErrors.push("Duplicate choices are not allowed.");
+    }
+
+    if (choices.length > 50) {
+      validationErrors.push("There cannot be more than 50 choices.");
+    }
+
+    if (defaultValue && !choices.includes(defaultValue)) {
+      setChoices([...choices, defaultValue]);
+    }
+
+    setErrors(validationErrors);
+
+    return validationErrors.length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    const formData: FieldData = {
       label,
       isMultiSelect,
       defaultValue,
       choices,
       order,
-    });
+    };
+
+    try {
+      const responseData = await saveFieldData(formData);
+      console.log("Form data posted successfully:", responseData);
+    } catch (error) {
+      console.error("Failed to post form data:", error);
+    }
+
+    console.log("Form data saved:", formData);
   };
 
   const handleClear = () => {
@@ -45,6 +86,7 @@ const FieldBuilder: React.FC = () => {
     setDefaultValue("");
     setChoices([]);
     setOrder("alphabetical");
+    setErrors([]);
   };
 
   const handleChoicesChange = (event: SelectChangeEvent<string[]>) => {
@@ -58,7 +100,7 @@ const FieldBuilder: React.FC = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh", // This ensures the container occupies full height, allowing proper vertical centering
+        height: "100vh",
       }}
     >
       <Card
@@ -80,6 +122,15 @@ const FieldBuilder: React.FC = () => {
           }}
         />
         <CardContent>
+          {errors.length > 0 && (
+            <Box sx={{ marginBottom: 2 }}>
+              {errors.map((error, index) => (
+                <Typography key={index} color="error">
+                  {error}
+                </Typography>
+              ))}
+            </Box>
+          )}
           <Box component="form" noValidate autoComplete="off">
             <Grid container alignItems="center" spacing={2} marginBottom={2}>
               <Grid item xs={4}>
@@ -90,6 +141,7 @@ const FieldBuilder: React.FC = () => {
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   fullWidth
+                  error={errors.includes("Label is required.")}
                 />
               </Grid>
             </Grid>
