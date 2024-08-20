@@ -36,6 +36,57 @@
         "Antartica"
       ],
       "order": "reverse-alphabetical"
+    },
+    {
+      "id": "a393",
+      "label": "Testing Region",
+      "isMultiSelect": false,
+      "defaultValue": "Antarticaгфхфгххххххххххххххххххххххххххххххххххххххххххххххххххххххххххххх",
+      "choices": [
+        "Antartica",
+        "Antarticaгфхфгххххххххххххххххххххххххххххххххххххххххххххххххххххххххххххх"
+      ],
+      "order": "reverse-alphabetical"
+    },
+    {
+      "id": "c947",
+      "label": "Test Some Stuff",
+      "isMultiSelect": false,
+      "defaultValue": "Europe",
+      "choices": [
+        "Europe"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "4c10",
+      "label": "Test Some Stuff",
+      "isMultiSelect": false,
+      "defaultValue": "Europes",
+      "choices": [
+        "Europe"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "0c4a",
+      "label": "Test Some Stuff",
+      "isMultiSelect": false,
+      "defaultValue": "Africas",
+      "choices": [
+        "Africa"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "df27",
+      "label": "Test Some Stuff",
+      "isMultiSelect": false,
+      "defaultValue": "",
+      "choices": [
+        "Australia"
+      ],
+      "order": "alphabetical"
     }
   ]
 }

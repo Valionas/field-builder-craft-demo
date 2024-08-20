@@ -19,7 +19,11 @@ import {
   InputLabel,
   ListItemText,
   Typography,
+  IconButton,
 } from "@mui/material";
+import { FaTimes } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import continents from "../../data/continents";
 import { saveFieldData } from "../../services/fieldService";
 import { FieldData } from "../../models/FieldData";
@@ -30,7 +34,10 @@ const FieldBuilder: React.FC = () => {
   const [label, setLabel] = useState<string>("");
   const [isMultiSelect, setIsMultiSelect] = useState<boolean>(true);
   const [defaultValue, setDefaultValue] = useState<string>("");
-  const [choices, setChoices] = useState<string[]>([]);
+  const [selectedChoiceOptions, setSelectedChoiceOptions] = useState<string[]>(
+    []
+  );
+  const [choiceOptions, setChoiceOptions] = useState<string[]>(continents);
   const [order, setOrder] = useState<string>("alphabetical");
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -41,7 +48,14 @@ const FieldBuilder: React.FC = () => {
       setLabel(parsedData.label);
       setIsMultiSelect(parsedData.isMultiSelect);
       setDefaultValue(parsedData.defaultValue);
-      setChoices(parsedData.choices);
+      setSelectedChoiceOptions(parsedData.choices);
+
+      setChoiceOptions(
+        parsedData.defaultValue &&
+          !parsedData.choices.includes(parsedData.defaultValue)
+          ? [...continents, parsedData.defaultValue]
+          : continents
+      );
       setOrder(parsedData.order);
     }
   }, []);
@@ -51,11 +65,11 @@ const FieldBuilder: React.FC = () => {
       label,
       isMultiSelect,
       defaultValue,
-      choices,
+      choices: selectedChoiceOptions,
       order,
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-  }, [label, isMultiSelect, defaultValue, choices, order]);
+  }, [label, isMultiSelect, defaultValue, selectedChoiceOptions, order]);
 
   const validateForm = (): boolean => {
     const validationErrors: string[] = [];
@@ -64,17 +78,23 @@ const FieldBuilder: React.FC = () => {
       validationErrors.push("Label is required.");
     }
 
-    const uniqueChoices = new Set(choices);
-    if (uniqueChoices.size !== choices.length) {
+    const uniqueChoices = new Set(selectedChoiceOptions);
+    if (uniqueChoices.size !== selectedChoiceOptions.length) {
       validationErrors.push("Duplicate choices are not allowed.");
     }
 
-    if (choices.length > 50) {
+    if (selectedChoiceOptions.length > 50) {
       validationErrors.push("There cannot be more than 50 choices.");
     }
 
-    if (defaultValue && !choices.includes(defaultValue)) {
-      setChoices([...choices, defaultValue]);
+    selectedChoiceOptions.forEach((choice) => {
+      if (choice.length > 40) {
+        validationErrors.push(`Choice "${choice}" exceeds 40 characters.`);
+      }
+    });
+
+    if (defaultValue && !selectedChoiceOptions.includes(defaultValue)) {
+      setSelectedChoiceOptions([...selectedChoiceOptions, defaultValue]);
     }
 
     setErrors(validationErrors);
@@ -84,30 +104,30 @@ const FieldBuilder: React.FC = () => {
 
   const handleSave = async () => {
     if (!validateForm()) {
+      toast.error("Please fix the validation errors before saving.");
       return;
-    }
-
-    // Ensure the default value is included in the choices if not already present
-    if (defaultValue && !choices.includes(defaultValue)) {
-      setChoices([...choices, defaultValue]);
     }
 
     const formData: FieldData = {
       label,
       isMultiSelect,
       defaultValue,
-      choices:
-        defaultValue && !choices.includes(defaultValue)
-          ? [...choices, defaultValue]
-          : choices,
+      choices: selectedChoiceOptions,
       order,
     };
 
     try {
       const responseData = await saveFieldData(formData);
       console.log("Form data posted successfully:", responseData);
+      toast.success("Form data saved successfully!");
+
+      // Add defaultValue to choiceOptions if it's not already there
+      if (defaultValue && !choiceOptions.includes(defaultValue)) {
+        setChoiceOptions([...choiceOptions, defaultValue]);
+      }
     } catch (error) {
       console.error("Failed to post form data:", error);
+      toast.error("Failed to save form data.");
     }
 
     console.log("Form data saved:", formData);
@@ -117,16 +137,77 @@ const FieldBuilder: React.FC = () => {
     setLabel("");
     setIsMultiSelect(true);
     setDefaultValue("");
-    setChoices([]);
+    setSelectedChoiceOptions([]);
+    setChoiceOptions(continents);
     setOrder("alphabetical");
     setErrors([]);
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+    toast.info("Form cleared.");
   };
 
-  const handleChoicesChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value as string[];
-    setChoices(value);
+  const handleChoicesChange = (event: SelectChangeEvent<string[] | string>) => {
+    const value = event.target.value;
+    if (isMultiSelect) {
+      setSelectedChoiceOptions(value as string[]);
+    } else {
+      const selectedValue = value as string;
+      setSelectedChoiceOptions([selectedValue]);
+      setDefaultValue(selectedValue); // Update defaultValue with the selected option
+    }
+
+    // Reset default value if it's removed from the choices
+    if (defaultValue && Array.isArray(value) && !value.includes(defaultValue)) {
+      setDefaultValue("");
+    }
   };
+
+  const removeChoice = (choiceToRemove: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (selectedChoiceOptions.length <= 1) {
+      toast.error("Cannot remove the last choice option.");
+      return;
+    }
+
+    const updatedChoices = choiceOptions.filter(
+      (choice) => choice !== choiceToRemove
+    );
+    setChoiceOptions(updatedChoices);
+
+    if (updatedChoices.length === 0) {
+      setDefaultValue("");
+      setErrors(["All choices have been removed. Please add choices."]);
+    }
+  };
+
+  const renderChoice = (choice: string) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <span>
+        {choice.length > 40 ? (
+          <>
+            {choice.slice(0, 40)}
+            <span style={{ color: "red" }}>{choice.slice(40)}</span>
+          </>
+        ) : (
+          choice
+        )}
+      </span>
+      <IconButton
+        size="small"
+        onClick={(event) => removeChoice(choice, event)}
+        sx={{ marginLeft: 1 }}
+      >
+        <FaTimes fontSize="small" />
+      </IconButton>
+    </Box>
+  );
 
   return (
     <Box
@@ -207,6 +288,11 @@ const FieldBuilder: React.FC = () => {
                   onChange={(e) => setDefaultValue(e.target.value)}
                   fullWidth
                 />
+                {defaultValue.length > 40 && (
+                  <Typography color="error" variant="caption">
+                    Default value exceeds 40 characters.
+                  </Typography>
+                )}
               </Grid>
             </Grid>
 
@@ -220,21 +306,41 @@ const FieldBuilder: React.FC = () => {
                   <Select
                     labelId="choices-label"
                     multiple={isMultiSelect}
-                    value={choices}
+                    value={
+                      isMultiSelect
+                        ? selectedChoiceOptions
+                        : selectedChoiceOptions[0] || ""
+                    }
                     onChange={handleChoicesChange}
                     input={<OutlinedInput label="Choices" />}
                     renderValue={(selected) =>
-                      Array.isArray(selected) ? selected.join(", ") : selected
+                      Array.isArray(selected)
+                        ? selected.map(renderChoice).join(", ")
+                        : selected
                     }
                   >
-                    {continents.map((continent) => (
-                      <MenuItem key={continent} value={continent}>
+                    {choiceOptions.map((option) => (
+                      <MenuItem key={option} value={option}>
                         {isMultiSelect && (
                           <MuiCheckbox
-                            checked={choices.indexOf(continent) > -1}
+                            checked={selectedChoiceOptions.indexOf(option) > -1}
                           />
                         )}
-                        <ListItemText primary={continent} />
+                        <ListItemText
+                          primary={option}
+                          secondary={
+                            option.length > 40
+                              ? `${option.length - 40} characters over limit`
+                              : undefined
+                          }
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={(event) => removeChoice(option, event)}
+                          sx={{ marginLeft: 1 }}
+                        >
+                          <FaTimes fontSize="small" />
+                        </IconButton>
                       </MenuItem>
                     ))}
                   </Select>
@@ -276,6 +382,7 @@ const FieldBuilder: React.FC = () => {
           </Button>
         </CardActions>
       </Card>
+      <ToastContainer />
     </Box>
   );
 };

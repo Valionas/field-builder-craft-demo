@@ -4,6 +4,7 @@ const continents: string[] = [
     "Europe",
     "Americas",
     "Africa",
+    "Very long continent with over 40 symbols list item"
   ];
   
   export default continents;
