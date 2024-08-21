@@ -6,7 +6,6 @@ import {
   Button,
   FormControl,
   OutlinedInput,
-  Checkbox as MuiCheckbox,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -30,7 +29,7 @@ import { FieldData } from "../../models/FieldData";
 
 const LOCAL_STORAGE_KEY = "fieldBuilderData";
 
-const FieldBuilder: React.FC = () => {
+const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
   const [label, setLabel] = useState<string>("");
   const [isMultiSelect, setIsMultiSelect] = useState<boolean>(true);
   const [defaultValue, setDefaultValue] = useState<string>("");
@@ -44,32 +43,30 @@ const FieldBuilder: React.FC = () => {
 
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+
     if (savedData) {
       const parsedData: FieldData = JSON.parse(savedData);
+
       setLabel(parsedData.label);
       setIsMultiSelect(parsedData.isMultiSelect);
       setDefaultValue(parsedData.defaultValue);
       setSelectedChoiceOptions(parsedData.choices);
-
-      setChoiceOptions(
-        parsedData.defaultValue &&
-          !parsedData.choices.includes(parsedData.defaultValue)
-          ? [...continents, parsedData.defaultValue]
-          : continents
-      );
       setOrder(parsedData.order);
     }
   }, []);
 
   useEffect(() => {
-    const formData: FieldData = {
-      label,
-      isMultiSelect,
-      defaultValue,
-      choices: selectedChoiceOptions,
-      order,
-    };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+    if (label || selectedChoiceOptions.length > 0) {
+      const formData: FieldData = {
+        label,
+        isMultiSelect,
+        defaultValue,
+        choices: selectedChoiceOptions,
+        order,
+      };
+
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+    }
   }, [label, isMultiSelect, defaultValue, selectedChoiceOptions, order]);
 
   const validateForm = (): boolean => {
@@ -77,6 +74,14 @@ const FieldBuilder: React.FC = () => {
 
     if (!label.trim()) {
       validationErrors.push("Label is required.");
+    }
+
+    if (selectedChoiceOptions.length === 0) {
+      validationErrors.push("At least one option must be selected.");
+    }
+
+    if (defaultValue.length > 40) {
+      validationErrors.push("Default value cannot exceed 40 characters.");
     }
 
     const uniqueChoices = new Set(selectedChoiceOptions);
@@ -94,10 +99,6 @@ const FieldBuilder: React.FC = () => {
       }
     });
 
-    if (defaultValue && !selectedChoiceOptions.includes(defaultValue)) {
-      setSelectedChoiceOptions([...selectedChoiceOptions, defaultValue]);
-    }
-
     setErrors(validationErrors);
 
     return validationErrors.length === 0;
@@ -109,33 +110,36 @@ const FieldBuilder: React.FC = () => {
       return;
     }
 
-    setIsSaving(true); // Start loading
+    setIsSaving(true);
+
+    const updatedChoices = [...selectedChoiceOptions];
+    if (defaultValue && !updatedChoices.includes(defaultValue)) {
+      updatedChoices.push(defaultValue);
+    }
 
     const formData: FieldData = {
       label,
       isMultiSelect,
       defaultValue,
-      choices: selectedChoiceOptions,
+      choices: updatedChoices,
       order,
     };
 
     try {
-      const responseData = await saveFieldData(formData);
-      console.log("Form data posted successfully:", responseData);
+      await saveFieldData(formData);
+      console.log(formData);
       toast.success("Form data saved successfully!");
-
-      // Add defaultValue to choiceOptions if it's not already there
-      if (defaultValue && !choiceOptions.includes(defaultValue)) {
-        setChoiceOptions([...choiceOptions, defaultValue]);
-      }
+      onSubmitSuccess();
+      setChoiceOptions([
+        ...choiceOptions,
+        ...updatedChoices.filter((choice) => !choiceOptions.includes(choice)),
+      ]);
     } catch (error) {
-      console.error("Failed to post form data:", error);
+      console.error(error);
       toast.error("Failed to save form data.");
     } finally {
-      setIsSaving(false); // End loading
+      setIsSaving(false);
     }
-
-    console.log("Form data saved:", formData);
   };
 
   const handleClear = () => {
@@ -151,27 +155,17 @@ const FieldBuilder: React.FC = () => {
   };
 
   const handleChoicesChange = (event: SelectChangeEvent<string[] | string>) => {
-    const value = event.target.value;
-    if (isMultiSelect) {
-      setSelectedChoiceOptions(value as string[]);
-    } else {
-      const selectedValue = value as string;
-      setSelectedChoiceOptions([selectedValue]);
-      setDefaultValue(selectedValue); // Update defaultValue with the selected option
-    }
-
-    // Reset default value if it's removed from the choices
-    if (defaultValue && Array.isArray(value) && !value.includes(defaultValue)) {
-      setDefaultValue("");
-    }
+    setSelectedChoiceOptions(event.target.value as string[]);
   };
 
   const removeChoice = (choiceToRemove: string, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (selectedChoiceOptions.length <= 1) {
-      toast.error("Cannot remove the last choice option.");
+    const activeChoices = choiceOptions.filter((choice) => choice.length <= 40);
+
+    if (activeChoices.length <= 1 && activeChoices.includes(choiceToRemove)) {
+      toast.error("Cannot delete the last active choice option.");
       return;
     }
 
@@ -180,51 +174,26 @@ const FieldBuilder: React.FC = () => {
     );
     setChoiceOptions(updatedChoices);
 
-    if (updatedChoices.length === 0) {
-      setDefaultValue("");
-      setErrors(["All choices have been removed. Please add choices."]);
-    }
+    setSelectedChoiceOptions((prevSelectedChoices) =>
+      prevSelectedChoices.filter((choice) => choice !== choiceToRemove)
+    );
   };
-
-  const renderChoice = (choice: string) => (
-    <Grid container justifyContent="space-between" alignItems="center">
-      <Grid item xs>
-        <Typography noWrap>
-          {choice.length > 40 ? (
-            <>
-              {choice.slice(0, 40)}
-              <span style={{ color: "red" }}>{choice.slice(40)}</span>
-            </>
-          ) : (
-            choice
-          )}
-        </Typography>
-      </Grid>
-      <Grid item>
-        <IconButton
-          size="small"
-          onClick={(event) => removeChoice(choice, event)}
-          sx={{ marginLeft: 1 }}
-        >
-          <FaTimes fontSize="small" />
-        </IconButton>
-      </Grid>
-    </Grid>
-  );
 
   return (
     <Grid
       container
       justifyContent="center"
       alignItems="center"
-      style={{ height: "100vh" }}
+      sx={{ height: "100%", width: "100%" }}
     >
-      <Grid item xs={12} sm={8} md={6}>
+      <Grid item xs={12}>
         <Card
           variant="outlined"
           sx={{
             borderRadius: "16px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+            width: "100%",
+            height: "100%",
           }}
         >
           <CardHeader
@@ -240,7 +209,7 @@ const FieldBuilder: React.FC = () => {
               color: "black",
             }}
           />
-          <CardContent>
+          <CardContent sx={{ maxHeight: "400px", overflowY: "auto" }}>
             {errors.length > 0 && (
               <Grid container justifyContent="center" marginBottom={2}>
                 {errors.map((error, index) => (
@@ -306,12 +275,13 @@ const FieldBuilder: React.FC = () => {
                   value={defaultValue}
                   onChange={(e) => setDefaultValue(e.target.value)}
                   fullWidth
+                  error={defaultValue.length > 40}
+                  helperText={
+                    defaultValue.length > 40
+                      ? "Default value exceeds 40 characters."
+                      : ""
+                  }
                 />
-                {defaultValue.length > 40 && (
-                  <Typography color="error" variant="caption">
-                    Default value exceeds 40 characters.
-                  </Typography>
-                )}
               </Grid>
             </Grid>
 
@@ -329,27 +299,26 @@ const FieldBuilder: React.FC = () => {
                   <InputLabel id="choices-label">Choices</InputLabel>
                   <Select
                     labelId="choices-label"
-                    multiple={isMultiSelect}
-                    value={
-                      isMultiSelect
-                        ? selectedChoiceOptions
-                        : selectedChoiceOptions[0] || ""
-                    }
+                    multiple
+                    value={selectedChoiceOptions}
                     onChange={handleChoicesChange}
                     input={<OutlinedInput label="Choices" />}
-                    renderValue={(selected) =>
-                      Array.isArray(selected)
-                        ? selected.map(renderChoice).join(", ")
-                        : selected
-                    }
+                    renderValue={(selected) => {
+                      if (Array.isArray(selected)) {
+                        return selected.join(", ");
+                      }
+                      return "";
+                    }}
                   >
                     {choiceOptions.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {isMultiSelect && (
-                          <MuiCheckbox
-                            checked={selectedChoiceOptions.indexOf(option) > -1}
-                          />
-                        )}
+                      <MenuItem
+                        key={option}
+                        value={option}
+                        disabled={option.length > 40}
+                      >
+                        <Checkbox
+                          checked={selectedChoiceOptions.indexOf(option) > -1}
+                        />
                         <ListItemText
                           primary={option}
                           secondary={
@@ -425,5 +394,9 @@ const FieldBuilder: React.FC = () => {
     </Grid>
   );
 };
+
+interface FieldBuilderProps {
+  onSubmitSuccess: () => void;
+}
 
 export default FieldBuilder;

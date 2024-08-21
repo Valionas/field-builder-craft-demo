@@ -1,124 +1,107 @@
 {
   "fields": [
     {
-      "id": "b838",
-      "label": "Sales",
+      "id": "0e8a",
+      "label": "Multi-select example without defaultValue",
       "isMultiSelect": true,
-      "defaultValue": "Americas",
-      "choices": [
-        "Americas",
-        "Europe"
-      ],
-      "order": "alphabetical"
-    },
-    {
-      "id": "6af4",
-      "label": "Sales-Region",
-      "isMultiSelect": false,
-      "defaultValue": "Europe",
-      "choices": "Europe",
-      "order": "reverse-alphabetical"
-    },
-    {
-      "id": "2836",
-      "label": "Test",
-      "isMultiSelect": true,
-      "defaultValue": "Choice",
-      "choices": [],
-      "order": "alphabetical"
-    },
-    {
-      "id": "618d",
-      "label": "Testing Region",
-      "isMultiSelect": true,
-      "defaultValue": "Antartica",
-      "choices": [
-        "Antartica"
-      ],
-      "order": "reverse-alphabetical"
-    },
-    {
-      "id": "a393",
-      "label": "Testing Region",
-      "isMultiSelect": false,
-      "defaultValue": "Antarticaгфхфгххххххххххххххххххххххххххххххххххххххххххххххххххххххххххххх",
-      "choices": [
-        "Antartica",
-        "Antarticaгфхфгххххххххххххххххххххххххххххххххххххххххххххххххххххххххххххх"
-      ],
-      "order": "reverse-alphabetical"
-    },
-    {
-      "id": "c947",
-      "label": "Test Some Stuff",
-      "isMultiSelect": false,
-      "defaultValue": "Europe",
-      "choices": [
-        "Europe"
-      ],
-      "order": "alphabetical"
-    },
-    {
-      "id": "4c10",
-      "label": "Test Some Stuff",
-      "isMultiSelect": false,
-      "defaultValue": "Europes",
-      "choices": [
-        "Europe"
-      ],
-      "order": "alphabetical"
-    },
-    {
-      "id": "0c4a",
-      "label": "Test Some Stuff",
-      "isMultiSelect": false,
-      "defaultValue": "Africas",
-      "choices": [
-        "Africa"
-      ],
-      "order": "alphabetical"
-    },
-    {
-      "id": "df27",
-      "label": "Test Some Stuff",
-      "isMultiSelect": false,
       "defaultValue": "",
       "choices": [
+        "Asia",
         "Australia"
       ],
       "order": "alphabetical"
     },
     {
-      "id": "2df7",
-      "label": "Test",
+      "id": "a88f",
+      "label": "Multi-select example with existing defaultValue",
       "isMultiSelect": true,
-      "defaultValue": "",
-      "choices": [],
-      "order": "alphabetical"
-    },
-    {
-      "id": "c813",
-      "label": "Test",
-      "isMultiSelect": true,
-      "defaultValue": "",
-      "choices": [],
-      "order": "alphabetical"
-    },
-    {
-      "id": "0086",
-      "label": "Test",
-      "isMultiSelect": true,
-      "defaultValue": "",
-      "choices": [],
-      "order": "alphabetical"
-    },
-    {
-      "id": "b151",
-      "label": "Region",
-      "isMultiSelect": false,
-      "defaultValue": "Europe",
+      "defaultValue": "Asia",
       "choices": [
+        "Asia",
+        "Australia"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "17e5",
+      "label": "Multi-select example with non-existing defaultValue",
+      "isMultiSelect": true,
+      "defaultValue": "Arctic",
+      "choices": [
+        "Asia",
+        "Australia",
+        "Arctic"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "28f9",
+      "label": "Reversed Multi-select example with non-existing defaultValue",
+      "isMultiSelect": true,
+      "defaultValue": "Arctic",
+      "choices": [
+        "Asia",
+        "Australia",
+        "Arctic"
+      ],
+      "order": "reverse-alphabetical"
+    },
+    {
+      "id": "3b09",
+      "label": "Single select without defaultValue",
+      "isMultiSelect": false,
+      "defaultValue": "",
+      "choices": [
+        "Asia",
+        "Australia"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "d6f2",
+      "label": "Single select with defaultValue",
+      "isMultiSelect": false,
+      "defaultValue": "Asia",
+      "choices": [
+        "Asia",
+        "Australia"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "5480",
+      "label": "Single select with non-existing defaultValue",
+      "isMultiSelect": false,
+      "defaultValue": "Mars",
+      "choices": [
+        "Asia",
+        "Australia",
+        "Mars"
+      ],
+      "order": "alphabetical"
+    },
+    {
+      "id": "4334",
+      "label": "Reverse single select",
+      "isMultiSelect": false,
+      "defaultValue": "Arctic",
+      "choices": [
+        "Asia",
+        "Australia",
+        "Arctic",
+        "Mars",
         "Europe"
+      ],
+      "order": "reverse-alphabetical"
+    },
+    {
+      "id": "5285",
+      "label": "Console data",
+      "isMultiSelect": true,
+      "defaultValue": "Console",
+      "choices": [
+        "Africa",
+        "Console"
       ],
       "order": "alphabetical"
     }
