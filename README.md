@@ -1,6 +1,8 @@
 # Field Builder
 
 A React application to create customizable form fields with dynamic options, validation, and persistent storage.
+![image](https://github.com/user-attachments/assets/d90e75c9-4308-4e7f-baf4-50d38d4737f6)
+
 
 ## Features
 
