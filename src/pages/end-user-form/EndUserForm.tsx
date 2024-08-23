@@ -16,13 +16,15 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { FieldResponse } from "../../models/FieldData";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EndUserForm: React.FC<EndUserFormProps> = ({ fields }) => {
   const [selectedValues, setSelectedValues] = useState<{
     [key: string]: string | string[];
   }>({});
 
-  useEffect(() => {
+  const getInitialValues = (fields: FieldResponse[]) => {
     const initialValues: { [key: string]: string | string[] } = {};
 
     fields.forEach((field) => {
@@ -35,6 +37,11 @@ const EndUserForm: React.FC<EndUserFormProps> = ({ fields }) => {
       }
     });
 
+    return initialValues;
+  };
+
+  useEffect(() => {
+    const initialValues = getInitialValues(fields);
     setSelectedValues(initialValues);
   }, [fields]);
 
@@ -47,6 +54,17 @@ const EndUserForm: React.FC<EndUserFormProps> = ({ fields }) => {
       ...prev,
       [fieldId]: value,
     }));
+  };
+
+  const handleOnRevert = () => {
+    const initialValues = getInitialValues(fields);
+    setSelectedValues(initialValues);
+    toast.info("Form data reverted to original state.");
+  };
+
+  const handleOnSubmit = () => {
+    toast.success("Submit successful.");
+    console.log(fields);
   };
 
   const renderField = (field: FieldResponse) => {
@@ -130,11 +148,11 @@ const EndUserForm: React.FC<EndUserFormProps> = ({ fields }) => {
         </Grid>
       </CardContent>
       <CardActions sx={{ justifyContent: "space-between", paddingX: 2 }}>
-        <Button variant="contained" color="success">
+        <Button variant="contained" color="success" onClick={handleOnSubmit}>
           Submit
         </Button>
-        <Button variant="contained" color="error">
-          Cancel
+        <Button variant="contained" color="error" onClick={handleOnRevert}>
+          Revert
         </Button>
       </CardActions>
     </Card>

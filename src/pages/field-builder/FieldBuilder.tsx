@@ -16,13 +16,13 @@ import {
   Grid,
   InputLabel,
   ListItemText,
-  Typography,
   IconButton,
   CircularProgress,
+  Typography,
 } from "@mui/material";
 import { FaTimes } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+
 import continents from "../../data/continents";
 import { saveFieldData } from "../../services/fieldService";
 import { FieldData } from "../../models/FieldData";
@@ -38,8 +38,16 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
   );
   const [choiceOptions, setChoiceOptions] = useState<string[]>(continents);
   const [order, setOrder] = useState<string>("alphabetical");
-  const [errors, setErrors] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  const [errors, setErrors] = useState<FieldBuilderErrors>({
+    labelRequired: false,
+    noChoicesSelected: false,
+    defaultValueTooLong: false,
+    duplicateChoices: false,
+    tooManyChoices: false,
+    choiceTooLong: false,
+  });
 
   useEffect(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -70,38 +78,19 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
   }, [label, isMultiSelect, defaultValue, selectedChoiceOptions, order]);
 
   const validateForm = (): boolean => {
-    const validationErrors: string[] = [];
-
-    if (!label.trim()) {
-      validationErrors.push("Label is required.");
-    }
-
-    if (selectedChoiceOptions.length === 0) {
-      validationErrors.push("At least one option must be selected.");
-    }
-
-    if (defaultValue.length > 40) {
-      validationErrors.push("Default value cannot exceed 40 characters.");
-    }
-
-    const uniqueChoices = new Set(selectedChoiceOptions);
-    if (uniqueChoices.size !== selectedChoiceOptions.length) {
-      validationErrors.push("Duplicate choices are not allowed.");
-    }
-
-    if (selectedChoiceOptions.length > 50) {
-      validationErrors.push("There cannot be more than 50 choices.");
-    }
-
-    selectedChoiceOptions.forEach((choice) => {
-      if (choice.length > 40) {
-        validationErrors.push(`Choice "${choice}" exceeds 40 characters.`);
-      }
-    });
+    const validationErrors: FieldBuilderErrors = {
+      labelRequired: !label.trim(),
+      noChoicesSelected: selectedChoiceOptions.length === 0,
+      defaultValueTooLong: defaultValue.length > 40,
+      duplicateChoices:
+        new Set(selectedChoiceOptions).size !== selectedChoiceOptions.length,
+      tooManyChoices: selectedChoiceOptions.length > 50,
+      choiceTooLong: selectedChoiceOptions.some((choice) => choice.length > 40),
+    };
 
     setErrors(validationErrors);
 
-    return validationErrors.length === 0;
+    return !Object.values(validationErrors).some(Boolean);
   };
 
   const handleSave = async () => {
@@ -149,7 +138,14 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
     setSelectedChoiceOptions([]);
     setChoiceOptions(continents);
     setOrder("alphabetical");
-    setErrors([]);
+    setErrors({
+      labelRequired: false,
+      noChoicesSelected: false,
+      defaultValueTooLong: false,
+      duplicateChoices: false,
+      tooManyChoices: false,
+      choiceTooLong: false,
+    });
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     toast.info("Form cleared.");
   };
@@ -210,22 +206,13 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
             }}
           />
           <CardContent sx={{ maxHeight: "400px", overflowY: "auto" }}>
-            {errors.length > 0 && (
-              <Grid container justifyContent="center" marginBottom={2}>
-                {errors.map((error, index) => (
-                  <Typography key={index} color="error">
-                    {error}
-                  </Typography>
-                ))}
-              </Grid>
-            )}
             <Grid container spacing={2} marginBottom={2}>
               <Grid item xs={12} sm={4}>
                 <Typography
                   variant="body1"
                   textAlign={{ xs: "center", sm: "left" }}
                 >
-                  Label
+                  Label:
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={8}>
@@ -233,21 +220,26 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   fullWidth
-                  error={errors.includes("Label is required.")}
+                  error={errors.labelRequired}
+                  helperText={errors.labelRequired ? "*Label is required." : ""}
                 />
               </Grid>
             </Grid>
-
-            <Grid container spacing={2} marginBottom={2}>
-              <Grid item xs={12} sm={4}>
+            <Grid
+              container
+              spacing={2}
+              marginBottom={2}
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              <Grid item xs={6} sm={4}>
                 <Typography
                   variant="body1"
-                  textAlign={{ xs: "center", sm: "left" }}
+                  textAlign={{ xs: "right", sm: "left" }}
                 >
-                  Type
+                  Type:
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={8}>
+              <Grid item xs={6} sm={8}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -267,7 +259,7 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                   variant="body1"
                   textAlign={{ xs: "center", sm: "left" }}
                 >
-                  Default Value
+                  Default Value:
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={8}>
@@ -278,7 +270,7 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                   error={defaultValue.length > 40}
                   helperText={
                     defaultValue.length > 40
-                      ? "Default value exceeds 40 characters."
+                      ? "*Default value exceeds 40 characters."
                       : ""
                   }
                 />
@@ -291,7 +283,7 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                   variant="body1"
                   textAlign={{ xs: "center", sm: "left" }}
                 >
-                  Choices
+                  Choices:
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={8}>
@@ -309,13 +301,14 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                       }
                       return "";
                     }}
+                    error={
+                      errors.noChoicesSelected ||
+                      errors.choiceTooLong ||
+                      errors.tooManyChoices
+                    }
                   >
                     {choiceOptions.map((option) => (
-                      <MenuItem
-                        key={option}
-                        value={option}
-                        disabled={option.length > 40}
-                      >
+                      <MenuItem key={option} value={option}>
                         <Checkbox
                           checked={selectedChoiceOptions.indexOf(option) > -1}
                         />
@@ -337,17 +330,31 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors.noChoicesSelected && (
+                    <Typography color="error" variant="caption">
+                      *At least one option must be selected.
+                    </Typography>
+                  )}
+                  {errors.choiceTooLong && (
+                    <Typography color="error" variant="caption">
+                      *Choices cannot exceed 40 characters.
+                    </Typography>
+                  )}
+                  {errors.tooManyChoices && (
+                    <Typography color="error" variant="caption">
+                      *You cannot choose more than 50 choices.
+                    </Typography>
+                  )}
                 </FormControl>
               </Grid>
             </Grid>
-
             <Grid container spacing={2} marginBottom={2}>
               <Grid item xs={12} sm={4}>
                 <Typography
                   variant="body1"
                   textAlign={{ xs: "center", sm: "left" }}
                 >
-                  Order
+                  Order:
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={8}>
@@ -389,11 +396,19 @@ const FieldBuilder: React.FC<FieldBuilderProps> = ({ onSubmitSuccess }) => {
             </Button>
           </CardActions>
         </Card>
-        <ToastContainer />
       </Grid>
     </Grid>
   );
 };
+
+interface FieldBuilderErrors {
+  labelRequired: boolean;
+  noChoicesSelected: boolean;
+  defaultValueTooLong: boolean;
+  duplicateChoices: boolean;
+  tooManyChoices: boolean;
+  choiceTooLong: boolean;
+}
 
 interface FieldBuilderProps {
   onSubmitSuccess: () => void;
